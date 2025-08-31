@@ -9,7 +9,6 @@ export class CompanyQueries {
 	): Promise<SearchResponse> {
 		let query = supabase.from("companies").select("*", { count: "exact" });
 
-		// Apply filters
 		if (filters.query) {
 			query = query.or(
 				`entity_name.ilike.%${filters.query}%,trading_name.ilike.%${filters.query}%,abn.ilike.%${filters.query}%`,
@@ -36,8 +35,8 @@ export class CompanyQueries {
 		return {
 			data: data || [],
 			total: count || 0,
-			page,
-			per_page: perPage,
+			current_page: page,
+			items_per_page: perPage,
 		};
 	}
 
@@ -59,8 +58,8 @@ export class CompanyQueries {
 
 		const { data: stateDistribution } = await supabase
 			.from("addresses")
-			.select("state_code, count()")
-			.group("state_code");
+			.select("state_code, count()");
+		// .group("state_code");
 
 		return {
 			totalCompanies: totalCompanies?.length || 0,

@@ -7,6 +7,7 @@ import {
 	XMLParserConfig,
 	ProcessingError,
 } from "./type";
+import { dateConvert } from "../utils/db-helper";
 
 export class XMLParser {
 	private parser: xml2js.Parser;
@@ -34,8 +35,9 @@ export class XMLParser {
 		try {
 			const xmlData = fs.readFileSync(filePath, "utf8");
 			const result = await this.parser.parseStringPromise(xmlData);
-			console.dir(result, { depth: null });
-			return this.extractCompaniesFromParsedXML(result);
+			const records = result.ABR || [];
+			const recordsArray = Array.isArray(records) ? records : [records];
+			return this.extractCompaniesFromParsedXML(recordsArray);
 		} catch (error) {
 			const processingError: ProcessingError = {
 				type: "PARSE_ERROR",
@@ -188,10 +190,11 @@ export class XMLParser {
 				entity_name: entityName,
 				trading_name: this.extractTradingName(record),
 				gst_status: this.extractGSTStatus(record),
+				gst_registration_date: this.extractGSTRegistrationDate(record),
 				registration_date: this.extractRegistrationDate(record),
-				lastUpdated_date: this.extractLastUpdatedDate(record),
+				last_updated_date: this.extractLastUpdatedDate(record),
 				business_names: this.extractBusinessNames(record),
-				addresses: this.extractAddresses(record),
+				address: this.extractAddresses(record),
 				created_at: new Date(),
 				updated_at: new Date(),
 				// entityStatus: this.extractEntityStatus(record),
@@ -209,6 +212,10 @@ export class XMLParser {
 	}
 
 	private extractABNStatus(record: any): string {
+		const status =
+			record.ABN?.status.toUpperCase() || record.ABN?.$?.status.toUpperCase();
+		if (status === "ACT") return "A";
+		if (status === "CAN") return "C";
 		return record.ABN?.status || record.ABN?.$?.status || "Unknown";
 	}
 
@@ -255,17 +262,23 @@ export class XMLParser {
 		return gstStatus === "ACT" ? "Active" : "Inactive";
 	}
 
+	private extractGSTRegistrationDate(record: any): string {
+		return dateConvert(
+			record.GST?.GSTStatusFromDate || record.GST?.$?.GSTStatusFromDate || "",
+		);
+	}
+
 	private extractRegistrationDate(record: any): string {
-		return (
-			record.ABN?.ABNStatusFromDate || record.ABN?.$?.ABNStatusFromDate || ""
+		return dateConvert(
+			record.ABN?.ABNStatusFromDate || record.ABN?.$?.ABNStatusFromDate || "",
 		);
 	}
 
 	private extractLastUpdatedDate(record: any): string | undefined {
-		return (
+		return dateConvert(
 			record.recordLastUpdatedDate ||
-			record.$?.recordLastUpdatedDate ||
-			undefined
+				record.$?.recordLastUpdatedDate ||
+				undefined,
 		);
 	}
 
@@ -380,7 +393,6 @@ export class XMLParser {
 				return { isValid: false, errors };
 			}
 
-			// Read first few KB to validate XML structure
 			const buffer = Buffer.alloc(Math.min(8192, stats.size));
 			const fd = fs.openSync(filePath, "r");
 			fs.readSync(fd, buffer, 0, buffer.length, 0);
