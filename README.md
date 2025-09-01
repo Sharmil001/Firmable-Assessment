@@ -43,10 +43,21 @@ graph TB
 - **Geographic Filtering**: State-based filtering with statistics
 - **Business Status**: Active, cancelled, historical records
 
-### 📊 Data Visualization
-- **Interactive Dashboard**: Business statistics by state
-- **Advanced Pagination**: Efficient handling of large datasets
-- **Detailed Business Views**: Comprehensive business information modals
+## 🎨 UI Components
+
+### Design System
+- **Color Palette**: Professional blue/gray theme
+- **Typography**: Clean, readable font hierarchy
+- **Spacing**: Consistent 8px grid system
+- **Components**: Reusable, accessible UI elements
+
+### Key Components
+- **SearchBar**: Advanced search with filters
+- **CompanyCard**: Business summary display
+- **DataTable**: Sortable, filterable table
+- **CompanyModal**: Detailed business information
+- **FilterPanel**: Advanced filtering interface
+- 
 
 ## 🛠️ Technology Stack
 
@@ -223,27 +234,6 @@ const response = await fetch('/api/companies?q=technology&state=NSW&page=1');
 const { companies, total, page } = await response.json();
 ```
 
-## 🔍 Search Capabilities
-- **Location**: State, postcode, suburb
-- **Business Type**: Industry classification
-- **Registration Date**: Date range selection
-- **Status**: Active, cancelled
-
-## 🎨 UI Components
-
-### Design System
-- **Color Palette**: Professional blue/gray theme
-- **Typography**: Clean, readable font hierarchy
-- **Spacing**: Consistent 8px grid system
-- **Components**: Reusable, accessible UI elements
-
-### Key Components
-- **SearchBar**: Advanced search with filters
-- **CompanyCard**: Business summary display
-- **DataTable**: Sortable, filterable table
-- **CompanyModal**: Detailed business information
-- **FilterPanel**: Advanced filtering interface
-
 ## 🚀 Deployment
 
 ### Production Build
@@ -259,9 +249,4 @@ NODE_ENV=production
 NEXT_PUBLIC_SUPABASE_URL=production_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=production_key
 ```
-## 📄 License
-
-This project is part of the Firmable technical assessment.
-
 ---
-
