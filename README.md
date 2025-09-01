@@ -16,7 +16,7 @@ graph TB
     D --> E[Supabase Database<br/>PostgreSQL]
     
     E --> F[Next.js API Routes<br/>Backend Logic]
-    F --> G[React Frontend<br/>Advanced Search UI]
+    F --> G[Next.js Frontend<br/>Advanced Search UI]
     G --> H[User Interface<br/>Business Directory]
     
     subgraph "Data Processing Layer"
