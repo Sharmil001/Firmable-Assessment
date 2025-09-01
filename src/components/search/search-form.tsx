@@ -164,13 +164,13 @@ export function SearchForm({
 	};
 
 	const handleEntityTypeChange = (types: EntityType[]): void => {
-		setValue("entityType", types);
+		setValue("entityType", [types[types.length - 1]]);
 	};
 
-	const onSubmit = (data: SearchFormData): void => {
-		onSearch(data);
-		setIsEntityTypeDropdownOpen(false);
-	};
+	// const onSubmit = (data: SearchFormData): void => {
+	// 	onSearch(data);
+	// 	setIsEntityTypeDropdownOpen(false);
+	// };
 
 	return (
 		<div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-lg border border-gray-100 overflow-hidden">

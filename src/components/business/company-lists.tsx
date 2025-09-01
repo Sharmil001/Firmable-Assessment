@@ -16,8 +16,8 @@ const CompanyLists = () => {
 	const [searchFilters, setSearchFilters] = useState<SearchFormData>({
 		query: "",
 		entityType: [],
-		state: "",
-		gstStatus: "",
+		state: [],
+		gstStatus: [],
 		abn: "",
 		postcode: "",
 	});
