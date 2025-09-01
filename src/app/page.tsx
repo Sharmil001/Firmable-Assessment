@@ -1,6 +1,6 @@
 "use client";
-import CompanyLists from "@/components/dashboard/company-lists";
-import StatsCards from "@/components/dashboard/stats-cards";
+import CompanyLists from "@/components/business/company-lists";
+import StatsCards from "@/components/business/stats-cards";
 
 export default function Home() {
 	return (

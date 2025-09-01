@@ -41,17 +41,6 @@ export function ComplexSelector({
 		}
 	};
 
-	const selectPopularTypes = (): void => {
-		const newSelection = [
-			...new Set([...selectedTypes, ...popularEntityTypes]),
-		];
-		onSelectionChange(newSelection);
-	};
-
-	const clearAll = (): void => {
-		onSelectionChange([]);
-	};
-
 	const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
 		if (e.target === e.currentTarget) {
 			onClose();
@@ -64,11 +53,6 @@ export function ComplexSelector({
 				onClose();
 			}
 		};
-
-		if (isOpen) {
-			document.addEventListener("keydown", handleEscapeKey);
-			document.body.style.overflow = "hidden";
-		}
 
 		return () => {
 			document.removeEventListener("keydown", handleEscapeKey);
@@ -138,7 +122,7 @@ export function ComplexSelector({
 					aria-multiselectable="true"
 				>
 					<div className="p-4 border-b border-gray-100 bg-gray-50/50">
-						<div className="relative mb-3">
+						<div className="relative">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 							<input
 								type="text"
@@ -148,25 +132,6 @@ export function ComplexSelector({
 								className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
 								aria-label="Search entity types"
 							/>
-						</div>
-
-						<div className="flex gap-2">
-							<button
-								type="button"
-								onClick={selectPopularTypes}
-								className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-								aria-label="Select popular entity types"
-							>
-								Select Popular
-							</button>
-							<button
-								type="button"
-								onClick={clearAll}
-								className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1"
-								aria-label="Clear all selections"
-							>
-								Clear All
-							</button>
 						</div>
 					</div>
 

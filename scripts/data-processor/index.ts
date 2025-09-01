@@ -2,12 +2,12 @@ import { SupabaseUploader } from "./supabase-uploader";
 import { XMLParser } from "./xml-parser";
 
 async function processABNData() {
-	console.log("Starting ABN data processing...");
-
 	try {
 		// -Parse XML files
 		console.log("Parsing XML files...");
 		const parser = new XMLParser();
+		//NOTE: ADD YOUR XML FILE PATH HERE
+		//EXAMPLE: const companies = await parser.parseXMLFileInChunks("scripts/data/20250827_Public01.xml");
 		const companies = await parser.parseXMLFileInChunks(
 			"scripts/data/20250827_Public01.xml",
 		);
@@ -23,9 +23,9 @@ async function processABNData() {
 		// const uploader = new SupabaseUploader();
 		// await uploader.getCompanies();
 
-		console.log("🎉 Data processing completed successfully!");
+		console.log("Data processing completed successfully!");
 	} catch (error) {
-		console.error("❌ Error processing data:", error);
+		console.error("Error processing data:", error);
 		process.exit(1);
 	}
 }

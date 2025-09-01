@@ -58,7 +58,6 @@ export class XMLParser {
 		filePath: string,
 		chunkSize: number = 1000,
 	): Promise<ABNRecord[]> {
-		console.log(`Processing large XML file in chunks: ${filePath}`);
 		try {
 			const stats = fs.statSync(filePath);
 			console.log(`File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
@@ -68,7 +67,7 @@ export class XMLParser {
 				return await this.parseXMLFile(filePath);
 			}
 		} catch (error) {
-			console.error("❌ Error in chunk parsing:", error);
+			console.error("Error in chunk parsing:", error);
 			throw error;
 		}
 	}
@@ -87,7 +86,7 @@ export class XMLParser {
 		const recordsArray = Array.isArray(records) ? records : [records];
 
 		console.log(
-			`🔍 Processing ${recordsArray.length} records in memory chunks...`,
+			`Processing ${recordsArray.length} records in memory chunks...`,
 		);
 		for (let i = 0; i < recordsArray.length; i += chunkSize) {
 			const chunk = recordsArray.slice(i, i + chunkSize);
@@ -100,7 +99,7 @@ export class XMLParser {
 						processedRecords++;
 
 						if (processedRecords % (chunkSize * 10) === 0) {
-							console.log(`📊 Processed ${processedRecords} records...`);
+							console.log(`Processed ${processedRecords} records...`);
 						}
 					}
 				} catch (error) {
@@ -122,15 +121,16 @@ export class XMLParser {
 		}
 
 		console.log(
-			`✅ Completed chunk processing. Total valid records: ${companies.length}`,
+			`Completed chunk processing. Total valid records: ${companies.length}`,
 		);
 		return companies;
 	}
 
+	// ===== NORMALIZATION =====
 	private extractCompaniesFromParsedXML(xmlData: ABRXMLRecord[]): ABNRecord[] {
 		const companies: ABNRecord[] = [];
 
-		console.log(`🔍 Found ${xmlData.length} ABR records in XML`);
+		console.log(`Found ${xmlData.length} ABR records in XML`);
 		for (const [index, record] of xmlData.entries()) {
 			try {
 				const company = this.mapXMLToCompany(record);
@@ -150,13 +150,11 @@ export class XMLParser {
 			}
 
 			if ((index + 1) % 10000 === 0) {
-				console.log(`📊 Processed ${index + 1} records...`);
+				console.log(`Processed ${index + 1} records...`);
 			}
 		}
 
-		console.log(
-			`✅ Successfully extracted ${companies.length} valid companies`,
-		);
+		console.log(`Successfully extracted ${companies.length} valid companies`);
 		return companies;
 	}
 
