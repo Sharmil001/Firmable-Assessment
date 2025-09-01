@@ -12,27 +12,39 @@ export async function GET(req: NextRequest) {
 	const queryText = searchParams.get("query") || "";
 	const entityType = searchParams.get("entityType") || "";
 	const gstStatus = searchParams.get("gstStatus") || "";
+	const state = searchParams.get("state") || "";
 
 	let query = supabase
 		.from("companies")
 		.select(
-			"id, abn, abn_status, entity_name, entity_type, gst_status, address, registration_date",
+			"id, abn, abn_status, entity_name, entity_type, trading_name, gst_status, address, business_names, registration_date",
 			{
-				count: "planned",
+				count: "estimated",
 			},
-		);
+		)
+		.order(sortBy, { ascending: sortOrder === "asc" })
+		.limit(perPage);
 
-	if (queryText) {
-		query = query.textSearch("entity_name", queryText, {
+	if (queryText.trim()) {
+		let searchField = "entity_name";
+		if (/^\d+$/.test(queryText.trim())) {
+			searchField = "abn";
+		}
+		query = query.textSearch(searchField, queryText, {
 			config: "english",
+			type: "plain",
 		});
 	}
 
-	if (entityType) {
+	if (entityType.trim()) {
 		query = query.eq("entity_type", entityType);
 	}
 
-	if (gstStatus) {
+	if (state.trim()) {
+		query = query.eq("address->>state", state);
+	}
+
+	if (gstStatus.trim()) {
 		query = query.eq("gst_status", gstStatus);
 	}
 

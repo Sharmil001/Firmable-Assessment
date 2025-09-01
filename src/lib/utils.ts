@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ignoreWords } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -8,7 +9,6 @@ export function cn(...inputs: ClassValue[]) {
 export function getCompanyInitials(name: string) {
 	if (!name) return "?";
 
-	const ignoreWords = ["PTY", "LTD", "INC", "LLC", "CO", "CORP", "THE"];
 	const words = name
 		.toUpperCase()
 		.split(" ")
@@ -27,3 +27,21 @@ export function getCompanyInitials(name: string) {
 
 	return initials || "?";
 }
+
+export function formatEffectiveFrom(dateString: string): string {
+	if (!dateString || dateString.length !== 8) return dateString;
+
+	const year = dateString.slice(0, 4);
+	const month = dateString.slice(4, 6);
+	const day = dateString.slice(6, 8);
+
+	return `${year}-${month}-${day}`;
+}
+
+export const formatDate = (dateString: string) => {
+	return new Date(dateString).toLocaleDateString("en-AU", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+	});
+};

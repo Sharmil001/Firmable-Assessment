@@ -6,6 +6,7 @@ import {
 	AddressRaw,
 	XMLParserConfig,
 	ProcessingError,
+	ABRXMLRecord,
 } from "./type";
 import { dateConvert } from "../utils/db-helper";
 
@@ -35,13 +36,16 @@ export class XMLParser {
 		try {
 			const xmlData = fs.readFileSync(filePath, "utf8");
 			const result = await this.parser.parseStringPromise(xmlData);
-			const records = result.ABR || [];
+			const records =
+				(result as { ABR?: ABRXMLRecord[] | ABRXMLRecord }).ABR || [];
 			const recordsArray = Array.isArray(records) ? records : [records];
 			return this.extractCompaniesFromParsedXML(recordsArray);
 		} catch (error) {
 			const processingError: ProcessingError = {
 				type: "PARSE_ERROR",
-				message: `Failed to parse XML file: ${error instanceof Error ? error.message : "Unknown error"}`,
+				message: `Failed to parse XML file: ${
+					error instanceof Error ? error.message : "Unknown error"
+				}`,
 				originalError: error instanceof Error ? error : undefined,
 				timestamp: new Date(),
 			};
@@ -78,8 +82,10 @@ export class XMLParser {
 
 		const xmlData = fs.readFileSync(filePath, "utf8");
 		const result = await this.parser.parseStringPromise(xmlData);
-		const records = result.ABR || [];
+		const records =
+			(result as { ABR?: ABRXMLRecord[] | ABRXMLRecord }).ABR || [];
 		const recordsArray = Array.isArray(records) ? records : [records];
+
 		console.log(
 			`🔍 Processing ${recordsArray.length} records in memory chunks...`,
 		);
@@ -98,14 +104,13 @@ export class XMLParser {
 						}
 					}
 				} catch (error) {
-					if (!this.config.skipMalformed) {
-						throw error;
-					}
-
+					if (!this.config.skipMalformed) throw error;
 					if (this.config.logErrors) {
 						this.errors.push({
 							type: "PARSE_ERROR",
-							message: `Failed to parse record: ${error instanceof Error ? error.message : "Unknown error"}`,
+							message: `Failed to parse record: ${
+								error instanceof Error ? error.message : "Unknown error"
+							}`,
 							originalError: error instanceof Error ? error : undefined,
 							timestamp: new Date(),
 						});
@@ -113,9 +118,7 @@ export class XMLParser {
 				}
 			}
 
-			if (global.gc) {
-				global.gc();
-			}
+			if (global.gc) global.gc();
 		}
 
 		console.log(
@@ -124,64 +127,45 @@ export class XMLParser {
 		return companies;
 	}
 
-	private extractCompaniesFromParsedXML(xmlData: any): ABNRecord[] {
+	private extractCompaniesFromParsedXML(xmlData: ABRXMLRecord[]): ABNRecord[] {
 		const companies: ABNRecord[] = [];
 
-		try {
-			const abrRecords = xmlData.ABR || [];
-
-			const recordsArray = Array.isArray(abrRecords)
-				? abrRecords
-				: [abrRecords];
-
-			console.log(`🔍 Found ${recordsArray.length} ABR records in XML`);
-
-			for (const [index, record] of recordsArray.entries()) {
-				try {
-					const company = this.mapXMLToCompany(record);
-					if (company) {
-						companies.push(company);
-					}
-				} catch (error) {
-					if (this.config.logErrors) {
-						this.errors.push({
-							type: "PARSE_ERROR",
-							message: `Failed to parse record at index ${index}: ${error instanceof Error ? error.message : "Unknown error"}`,
-							originalError: error instanceof Error ? error : undefined,
-							timestamp: new Date(),
-						});
-					}
-
-					if (!this.config.skipMalformed) {
-						throw error;
-					}
+		console.log(`🔍 Found ${xmlData.length} ABR records in XML`);
+		for (const [index, record] of xmlData.entries()) {
+			try {
+				const company = this.mapXMLToCompany(record);
+				if (company) companies.push(company);
+			} catch (error) {
+				if (this.config.logErrors) {
+					this.errors.push({
+						type: "PARSE_ERROR",
+						message: `Failed to parse record at index ${index}: ${
+							error instanceof Error ? error.message : "Unknown error"
+						}`,
+						originalError: error instanceof Error ? error : undefined,
+						timestamp: new Date(),
+					});
 				}
-
-				if ((index + 1) % 10000 === 0) {
-					console.log(
-						`📊 Processed ${index + 1} records, found ${companies.length} valid companies...`,
-					);
-				}
+				if (!this.config.skipMalformed) throw error;
 			}
 
-			console.log(
-				`✅ Successfully extracted ${companies.length} valid companies`,
-			);
-			return companies;
-		} catch (error) {
-			console.error("❌ Error extracting companies from XML:", error);
-			throw error;
+			if ((index + 1) % 10000 === 0) {
+				console.log(`📊 Processed ${index + 1} records...`);
+			}
 		}
+
+		console.log(
+			`✅ Successfully extracted ${companies.length} valid companies`,
+		);
+		return companies;
 	}
 
-	private mapXMLToCompany(record: any): ABNRecord | null {
+	private mapXMLToCompany(record: ABRXMLRecord): ABNRecord | null {
 		try {
 			const abn = this.extractABN(record);
 			const entityName = this.extractEntityName(record);
 
-			if (!abn || !entityName) {
-				return null;
-			}
+			if (!abn || !entityName) return null;
 
 			return {
 				abn,
@@ -197,37 +181,32 @@ export class XMLParser {
 				address: this.extractAddresses(record),
 				created_at: new Date(),
 				updated_at: new Date(),
-				// entityStatus: this.extractEntityStatus(record),
 			};
 		} catch (error) {
-			if (this.config.logErrors) {
-				console.warn(`!  Failed to map XML record:`, error);
-			}
+			if (this.config.logErrors)
+				console.warn("! Failed to map XML record:", error);
 			return null;
 		}
 	}
 
-	private extractABN(record: any): string {
-		return record.ABN?._ || record.ABN || "";
+	private extractABN(record: ABRXMLRecord): string {
+		return record.ABN?._ || "";
 	}
 
-	private extractABNStatus(record: any): string {
+	private extractABNStatus(record: ABRXMLRecord): string {
 		const status =
-			record.ABN?.status.toUpperCase() || record.ABN?.$?.status.toUpperCase();
+			record.ABN?.status?.toUpperCase() || record.ABN?.$?.status?.toUpperCase();
 		if (status === "ACT") return "A";
 		if (status === "CAN") return "C";
 		return record.ABN?.status || record.ABN?.$?.status || "Unknown";
 	}
 
-	private extractEntityType(record: any): string {
-		return (
-			record.EntityType?.EntityTypeInd ||
-			record.EntityType?.EntityTypeInd?._ ||
-			"Unknown"
-		);
+	private extractEntityType(record: ABRXMLRecord): string {
+		const type = record.EntityType?.EntityTypeInd;
+		return typeof type === "string" ? type : type?._ || "Unknown";
 	}
 
-	private extractEntityName(record: any): string {
+	private extractEntityName(record: ABRXMLRecord): string {
 		return (
 			record.MainEntity?.NonIndividualName?.NonIndividualNameText ||
 			record.MainEntity?.NonIndividualName?._ ||
@@ -236,143 +215,122 @@ export class XMLParser {
 		);
 	}
 
-	private extractTradingName(record: any): string | undefined {
-		const otherEntities = record.OtherEntity || [];
-		const entitiesArray = Array.isArray(otherEntities)
-			? otherEntities
-			: [otherEntities];
+	private extractTradingName(record: ABRXMLRecord): string | undefined {
+		const entities = Array.isArray(record.OtherEntity)
+			? record.OtherEntity
+			: record.OtherEntity
+				? [record.OtherEntity]
+				: [];
 
-		for (const entity of entitiesArray) {
-			if (
-				entity?.NonIndividualName?.type === "TRD" ||
-				entity?.NonIndividualName?.$?.type === "TRD"
-			) {
-				const tradingName =
-					entity.NonIndividualName.NonIndividualNameText ||
-					entity.NonIndividualName._;
-				if (tradingName) return tradingName;
+		for (const entity of entities) {
+			const name = entity.NonIndividualName;
+			if (name?.type === "TRD" || name?.$?.type === "TRD") {
+				return name.NonIndividualNameText || name._;
 			}
 		}
-
 		return undefined;
 	}
 
-	private extractGSTStatus(record: any): string {
+	private extractGSTStatus(record: ABRXMLRecord): string {
 		const gstStatus = record.GST?.status || record.GST?.$?.status;
 		return gstStatus === "ACT" ? "Active" : "Inactive";
 	}
 
-	private extractGSTRegistrationDate(record: any): string {
+	private extractGSTRegistrationDate(record: ABRXMLRecord): string {
 		return dateConvert(
 			record.GST?.GSTStatusFromDate || record.GST?.$?.GSTStatusFromDate || "",
 		);
 	}
 
-	private extractRegistrationDate(record: any): string {
+	private extractRegistrationDate(record: ABRXMLRecord): string {
 		return dateConvert(
 			record.ABN?.ABNStatusFromDate || record.ABN?.$?.ABNStatusFromDate || "",
 		);
 	}
 
-	private extractLastUpdatedDate(record: any): string | undefined {
+	private extractLastUpdatedDate(record: ABRXMLRecord): string | undefined {
 		return dateConvert(
-			record.recordLastUpdatedDate ||
-				record.$?.recordLastUpdatedDate ||
-				undefined,
+			record.recordLastUpdatedDate || record.$?.recordLastUpdatedDate || "",
 		);
 	}
 
-	private extractBusinessNames(record: any): BusinessNameRaw[] {
+	private extractBusinessNames(record: ABRXMLRecord): BusinessNameRaw[] {
 		const businessNames: BusinessNameRaw[] = [];
+		const mainEntity = record.MainEntity?.NonIndividualName;
 
-		try {
-			const mainEntity = record.MainEntity?.NonIndividualName;
-			if (mainEntity?.NonIndividualNameText) {
+		if (mainEntity?.NonIndividualNameText) {
+			businessNames.push({
+				nameType: mainEntity.type || mainEntity.$?.type || "MN",
+				organisationName: mainEntity.NonIndividualNameText,
+				effectiveFrom: record.ABN?.ABNStatusFromDate || "",
+				effectiveTo: undefined,
+			});
+		}
+
+		const entities = Array.isArray(record.OtherEntity)
+			? record.OtherEntity
+			: record.OtherEntity
+				? [record.OtherEntity]
+				: [];
+
+		for (const entity of entities) {
+			const name = entity?.NonIndividualName;
+			if (name?.NonIndividualNameText) {
 				businessNames.push({
-					nameType: mainEntity.type || mainEntity.$?.type || "MN",
-					organisationName: mainEntity.NonIndividualNameText,
+					nameType: name.type || name.$?.type || "OTN",
+					organisationName: name.NonIndividualNameText,
 					effectiveFrom: record.ABN?.ABNStatusFromDate || "",
 					effectiveTo: undefined,
 				});
-			}
-
-			const otherEntities = record.OtherEntity || [];
-			const entitiesArray = Array.isArray(otherEntities)
-				? otherEntities
-				: [otherEntities];
-
-			for (const entity of entitiesArray) {
-				const name = entity?.NonIndividualName;
-				if (name?.NonIndividualNameText) {
-					businessNames.push({
-						nameType: name.type || name.$?.type || "OTN",
-						organisationName: name.NonIndividualNameText,
-						effectiveFrom: record.ABN?.ABNStatusFromDate || "",
-						effectiveTo: undefined,
-					});
-				}
-			}
-		} catch (error) {
-			if (this.config.logErrors) {
-				console.warn("!  Error extracting business names:", error);
 			}
 		}
 
 		return businessNames;
 	}
 
-	private extractAddresses(record: any): AddressRaw | null {
+	private extractAddresses(record: ABRXMLRecord): AddressRaw | null {
 		const addresses: AddressRaw[] = [];
+		const businessAddress = record.MainEntity?.BusinessAddress?.AddressDetails;
+		const postalAddress = record.MainEntity?.PostalAddress?.AddressDetails;
 
-		try {
-			const businessAddress =
-				record.MainEntity?.BusinessAddress?.AddressDetails;
-			if (businessAddress) {
-				addresses.push({
-					address_type: "Main Business Physical Address",
-					state_code: businessAddress.State,
-					postcode: businessAddress.Postcode,
-					country_code: "AU",
-					effective_from: record.ABN?.ABNStatusFromDate || "",
-					effective_to: undefined,
-				});
-			}
-
-			const postalAddress = record.MainEntity?.PostalAddress?.AddressDetails;
-			if (postalAddress && postalAddress !== businessAddress) {
-				addresses.push({
-					address_type: "Main Business Postal Address",
-					state_code: postalAddress.State,
-					postcode: postalAddress.Postcode,
-					country_code: "AU",
-					effective_from: record.ABN?.ABNStatusFromDate || "",
-					effective_to: undefined,
-				});
-			}
-		} catch (error) {
-			if (this.config.logErrors) {
-				console.warn("!  Error extracting addresses:", error);
-			}
+		if (businessAddress) {
+			addresses.push({
+				address_type: "Main Business Physical Address",
+				state_code: businessAddress.State,
+				postcode: businessAddress.Postcode,
+				country_code: "AU",
+				effective_from: record.ABN?.ABNStatusFromDate || "",
+				effective_to: undefined,
+			});
 		}
 
-		if (!addresses || addresses.length === 0) return null;
+		if (postalAddress && postalAddress !== businessAddress) {
+			addresses.push({
+				address_type: "Main Business Postal Address",
+				state_code: postalAddress.State,
+				postcode: postalAddress.Postcode,
+				country_code: "AU",
+				effective_from: record.ABN?.ABNStatusFromDate || "",
+				effective_to: undefined,
+			});
+		}
 
-		const prioritizedAddress =
+		if (!addresses.length) return null;
+
+		const prioritized =
 			addresses.find(
-				(addr) => addr.address_type === "Main Business Physical Address",
+				(a) => a.address_type === "Main Business Physical Address",
 			) ||
 			addresses.find(
-				(addr) => addr.address_type === "Main Business Postal Address",
+				(a) => a.address_type === "Main Business Postal Address",
 			) ||
 			addresses[0];
 
-		if (!prioritizedAddress) return null;
-
 		return {
-			state: prioritizedAddress.state_code,
-			postcode: prioritizedAddress.postcode,
-			country: prioritizedAddress.country_code || "AU",
-			address_type: prioritizedAddress.address_type,
+			state: prioritized.state_code,
+			postcode: prioritized.postcode,
+			country: prioritized.country_code || "AU",
+			address_type: prioritized.address_type,
 		};
 	}
 
@@ -398,21 +356,12 @@ export class XMLParser {
 			fs.readSync(fd, buffer, 0, buffer.length, 0);
 			fs.closeSync(fd);
 
-			const sampleData = buffer.toString("utf8");
-
-			if (!sampleData.includes("<?xml")) {
-				errors.push(
-					"File does not appear to be valid XML (missing XML declaration)",
-				);
+			const sample = buffer.toString("utf8");
+			if (!sample.includes("<?xml")) {
+				errors.push("File does not appear to be valid XML");
 			}
-
-			if (
-				!sampleData.includes("ABR") &&
-				!sampleData.includes("searchResults")
-			) {
-				errors.push(
-					"File does not appear to be an ABN bulk extract (missing expected root elements)",
-				);
+			if (!sample.includes("ABR") && !sample.includes("searchResults")) {
+				errors.push("Missing expected root elements");
 			}
 
 			return { isValid: errors.length === 0, errors };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Company } from "@/types/company";
+import type { ABNRecord } from "../../scripts/data-processor/type";
 
 interface UseCompaniesProps {
 	page?: number;
@@ -7,6 +7,7 @@ interface UseCompaniesProps {
 	query?: string;
 	entityType?: string;
 	gstStatus?: string;
+	state?: string;
 	sortBy?: string;
 	sortOrder?: "asc" | "desc";
 }
@@ -17,10 +18,11 @@ export function useCompanies({
 	query = "",
 	entityType = "",
 	gstStatus = "",
+	state = "",
 	sortBy = "entity_name",
 	sortOrder = "asc",
 }: UseCompaniesProps) {
-	const [data, setData] = useState<Company[]>([]);
+	const [data, setData] = useState<ABNRecord[]>([]);
 	const [total, setTotal] = useState(0);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -33,6 +35,7 @@ export function useCompanies({
 			query,
 			entityType,
 			gstStatus,
+			state,
 			sortBy,
 			sortOrder,
 		});
@@ -48,7 +51,7 @@ export function useCompanies({
 				setError(err.message);
 				setIsLoading(false);
 			});
-	}, [page, perPage, query, entityType, gstStatus, sortBy, sortOrder]);
+	}, [page, perPage, query, entityType, gstStatus, state, sortBy, sortOrder]);
 
 	return { data, total, isLoading, error };
 }

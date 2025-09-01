@@ -3,22 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-	Search,
-	Building2,
-	MapPin,
-	FileCheck,
-	Calendar,
-	Filter,
-	X,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+import { Search, Building2, MapPin, FileCheck, Filter, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { states, gstStatuses } from "@/lib/constants";
+import { ComplexSelector } from "../common/complex-selector";
 
-const entityTypes = ["Private Company", "Public Company", "Individual"];
-const gstStatuses = ["Active", "Inactive"];
-const states = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
+type EntityType = string;
 
 const searchSchema = z.object({
 	query: z.string().optional(),
@@ -32,74 +23,118 @@ const searchSchema = z.object({
 export type SearchFormData = z.infer<typeof searchSchema>;
 
 interface SearchFormProps {
+	searchFilters: SearchFormData;
 	onSearch: (filters: SearchFormData) => void;
 	isLoading?: boolean;
 }
 
-export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
-	const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+export function SearchForm({
+	searchFilters,
+	onSearch,
+	isLoading = false,
+}: SearchFormProps) {
+	const [activeFiltersCount, setActiveFiltersCount] = useState<number>(0);
+	const [isEntityTypeDropdownOpen, setIsEntityTypeDropdownOpen] =
+		useState<boolean>(false);
 
-	const { register, handleSubmit, setValue, watch, reset } =
-		useForm<SearchFormData>({
-			resolver: zodResolver(searchSchema),
-			defaultValues: {
-				entityType: [],
-				state: [],
-				gstStatus: [],
-			},
-		});
+	const {
+		register,
+		handleSubmit,
+		setValue,
+		watch,
+		reset,
+		formState: { errors },
+	} = useForm<SearchFormData>({
+		resolver: zodResolver(searchSchema),
+		defaultValues: {
+			entityType: [],
+			state: [],
+			gstStatus: [],
+		},
+	});
 
-	const selectedEntityTypes = watch("entityType");
-	const selectedStates = watch("state");
-	const selectedGstStatuses = watch("gstStatus");
-	const query = watch("query");
+	const selectedEntityTypes = watch("entityType") || [];
+	const selectedStates = watch("state") || [];
+	const selectedGstStatuses = watch("gstStatus") || [];
+	const query = watch("query") || "";
 
-	// Calculate active filters count
+	useEffect(() => {
+		if (searchFilters) {
+			reset({
+				query: searchFilters.query || "",
+				entityType: searchFilters.entityType || [],
+				state: searchFilters.state || [],
+				gstStatus: searchFilters.gstStatus || [],
+				registrationFrom: searchFilters.registrationFrom,
+				registrationTo: searchFilters.registrationTo,
+			});
+		}
+	}, [searchFilters, reset]);
+
 	useEffect(() => {
 		const count = [
-			query?.length > 0 ? 1 : 0,
-			selectedEntityTypes?.length > 0 ? 1 : 0,
-			selectedStates?.length > 0 ? 1 : 0,
-			selectedGstStatuses?.length > 0 ? 1 : 0,
-		].reduce((sum, val) => sum + val, 0);
+			query.length > 0,
+			selectedEntityTypes.length > 0,
+			selectedStates.length > 0,
+			selectedGstStatuses.length > 0,
+		].filter(Boolean).length;
+
 		setActiveFiltersCount(count);
 	}, [query, selectedEntityTypes, selectedStates, selectedGstStatuses]);
 
 	const toggleCheckbox = (
-		field: "entityType" | "state" | "gstStatus",
+		field: "state" | "gstStatus",
 		value: string,
-	) => {
+	): void => {
 		const current = watch(field) || [];
-		if (current.includes(value)) {
-			setValue(
-				field,
-				current.filter((v) => v !== value),
-			);
-		} else {
-			setValue(field, [...current, value]);
-		}
+		const newValue = current.includes(value)
+			? current.filter((v) => v !== value)
+			: [...current, value];
+		setValue(field, newValue);
 	};
 
-	const clearAllFilters = () => {
-		reset({
+	const clearAllFilters = (): void => {
+		const cleaned = {
 			query: "",
 			entityType: [],
 			state: [],
 			gstStatus: [],
-		});
+		};
+		reset(cleaned);
+		setIsEntityTypeDropdownOpen(false);
+		onSearch(cleaned);
+	};
+
+	const handleEntityTypeToggle = (): void => {
+		setIsEntityTypeDropdownOpen(!isEntityTypeDropdownOpen);
+	};
+
+	const handleEntityTypeClose = (): void => {
+		setIsEntityTypeDropdownOpen(false);
+	};
+
+	const handleEntityTypeChange = (types: EntityType[]): void => {
+		setValue("entityType", types);
+	};
+
+	const onSubmit = (data: SearchFormData): void => {
+		onSearch(data);
+		setIsEntityTypeDropdownOpen(false);
 	};
 
 	return (
 		<div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-lg border border-gray-100 overflow-hidden">
-			<div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+			<div className="px-6 py-4 border-b border-gray-200">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<div className="p-2 bg-white/20 rounded-lg">
-							<Filter className="h-5 w-5 text-white" />
+						<div className="p-2 bg-blue-400/20 rounded-lg">
+							<Filter className="h-5 w-5 text-blue-600" />
 						</div>
 						<div>
-							<h1 className="font-bold text-lg text-white">Search & Filter</h1>
-							<p className="text-blue-100 text-xs">
+							<h1 className="font-bold text-base text-gray-900">
+								Search & Filter
+							</h1>
+							<p className="text-xs text-gray-600">
 								Find companies with advanced filters
 							</p>
 						</div>
@@ -107,71 +142,75 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				</div>
 
 				{activeFiltersCount > 0 && (
-					<div className="flex items-center gap-2 mt-2">
-						<span className="flex gap-1 bg-white/20 text-white text-xs px-2 py-1 rounded-full font-medium">
-							<span>{activeFiltersCount} active</span>
-							<button onClick={clearAllFilters} title="Clear all filters">
-								<X className="h-4 w-4 text-white" />
+					<div className="flex items-center gap-2 mt-3">
+						<div className="flex items-center gap-1 bg-blue-400/20 text-blue-600 text-xs px-2 py-1 rounded-full font-medium">
+							<span>
+								{activeFiltersCount} active filter
+								{activeFiltersCount !== 1 ? "s" : ""}
+							</span>
+							<button
+								onClick={clearAllFilters}
+								title="Clear all filters"
+								className="hover:bg-blue-500/20 rounded-full p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500"
+								aria-label="Clear all filters"
+							>
+								<X className="h-3 w-3 text-blue-600" />
 							</button>
-						</span>
+						</div>
 					</div>
 				)}
 			</div>
 
-			{/* Form Content */}
-			<form onSubmit={handleSubmit(onSearch)} className="p-6 space-y-6">
-				{/* Search Input */}
+			<div className="p-6 space-y-6">
 				<div className="space-y-2">
-					<label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+					<label
+						htmlFor="search-query"
+						className="flex items-center gap-2 text-sm font-semibold text-gray-700"
+					>
 						<Search className="h-4 w-4 text-gray-500" />
 						Search Companies
 					</label>
 					<div className="relative">
 						<Input
 							{...register("query")}
-							placeholder="Search by company name, ABN, or trading name..."
-							className="pl-10 py-3 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+							id="search-query"
+							placeholder="Search by company name..."
+							className="pl-10 py-6 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+							aria-describedby={errors.query ? "query-error" : undefined}
 						/>
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
 					</div>
+					{errors.query && (
+						<p id="query-error" className="text-xs text-red-600">
+							{errors.query.message}
+						</p>
+					)}
 				</div>
 
-				{/* Entity Type */}
 				<div className="space-y-2">
 					<label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
 						<Building2 className="h-4 w-4 text-gray-500" />
 						Entity Type
-						{selectedEntityTypes?.length > 0 && (
-							<span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+						{selectedEntityTypes.length > 0 && (
+							<span className="bg-pink-100 text-pink-700 text-xs px-2 py-0.5 rounded-full font-medium">
 								{selectedEntityTypes.length}
 							</span>
 						)}
 					</label>
-					<div className="grid gap-1">
-						{entityTypes.map((type) => (
-							<div
-								key={type}
-								className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-							>
-								<Checkbox
-									checked={selectedEntityTypes?.includes(type)}
-									onCheckedChange={() => toggleCheckbox("entityType", type)}
-									className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-								/>
-								<label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
-									{type}
-								</label>
-							</div>
-						))}
-					</div>
+					<ComplexSelector
+						selectedTypes={selectedEntityTypes}
+						onSelectionChange={handleEntityTypeChange}
+						isOpen={isEntityTypeDropdownOpen}
+						onToggle={handleEntityTypeToggle}
+						onClose={handleEntityTypeClose}
+					/>
 				</div>
 
-				{/* GST Status */}
 				<div className="space-y-2">
 					<label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
 						<FileCheck className="h-4 w-4 text-gray-500" />
 						GST Status
-						{selectedGstStatuses?.length > 0 && (
+						{selectedGstStatuses.length > 0 && (
 							<span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">
 								{selectedGstStatuses.length}
 							</span>
@@ -184,27 +223,33 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 								className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
 							>
 								<Checkbox
-									checked={selectedGstStatuses?.includes(status)}
+									checked={selectedGstStatuses.includes(status)}
 									onCheckedChange={() => toggleCheckbox("gstStatus", status)}
 									className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+									aria-describedby={`gst-status-${status.toLowerCase()}`}
 								/>
-								<label className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+								<label
+									htmlFor={`gst-status-${status.toLowerCase()}`}
+									className="text-sm font-medium text-gray-700 cursor-pointer flex-1"
+								>
 									{status}
 								</label>
 								<div
-									className={`w-2 h-2 rounded-full ${status === "Active" ? "bg-green-500" : "bg-gray-400"}`}
+									className={`w-2 h-2 rounded-full ${
+										status === "Active" ? "bg-green-500" : "bg-gray-400"
+									}`}
+									aria-hidden="true"
 								/>
 							</div>
 						))}
 					</div>
 				</div>
 
-				{/* States */}
 				<div className="space-y-2">
 					<label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
 						<MapPin className="h-4 w-4 text-gray-500" />
 						Location
-						{selectedStates?.length > 0 && (
+						{selectedStates.length > 0 && (
 							<span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
 								{selectedStates.length}
 							</span>
@@ -217,11 +262,15 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 								className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
 							>
 								<Checkbox
-									checked={selectedStates?.includes(state)}
+									checked={selectedStates.includes(state)}
 									onCheckedChange={() => toggleCheckbox("state", state)}
 									className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+									aria-describedby={`state-${state.toLowerCase()}`}
 								/>
-								<label className="text-sm font-medium text-gray-700 cursor-pointer">
+								<label
+									htmlFor={`state-${state.toLowerCase()}`}
+									className="text-sm font-medium text-gray-700 cursor-pointer"
+								>
 									{state}
 								</label>
 							</div>
@@ -230,25 +279,27 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				</div>
 
 				<div className="pt-4 border-t border-gray-100">
-					<Button
-						type="submit"
+					<button
+						onClick={handleSubmit(onSubmit)}
 						disabled={isLoading}
-						className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+						className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						aria-label={
+							isLoading
+								? "Searching companies..."
+								: "Search companies with current filters"
+						}
 					>
 						{isLoading ? (
-							<div className="flex items-center gap-2">
+							<span className="flex items-center justify-center gap-2">
 								<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
 								Searching...
-							</div>
+							</span>
 						) : (
-							<div className="flex items-center gap-2">
-								<Search className="h-4 w-4" />
-								Apply Filters
-							</div>
+							"Search Companies"
 						)}
-					</Button>
+					</button>
 				</div>
-			</form>
+			</div>
 		</div>
 	);
 }

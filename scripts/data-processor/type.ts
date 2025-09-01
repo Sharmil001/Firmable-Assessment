@@ -107,3 +107,65 @@ export interface ProcessingError {
 	originalError?: Error;
 	timestamp: Date;
 }
+
+export interface ABRXMLRecord {
+	ABN?: ABNInfo;
+	EntityType?: {
+		EntityTypeInd?: string | { _: string };
+	};
+	MainEntity?: MainEntity;
+	OtherEntity?: OtherEntity[] | OtherEntity;
+	GST?: GSTInfo;
+	recordLastUpdatedDate?: string;
+	$?: {
+		recordLastUpdatedDate?: string;
+	};
+}
+
+export interface ABNInfo {
+	_: string; // ABN value
+	status?: string;
+	$?: {
+		status?: string;
+		ABNStatusFromDate?: string;
+	};
+	ABNStatusFromDate?: string;
+}
+
+export interface MainEntity {
+	NonIndividualName?: NonIndividualName;
+	IndividualName?: {
+		GivenName?: string;
+	};
+	BusinessAddress?: {
+		AddressDetails?: AddressDetails;
+	};
+	PostalAddress?: {
+		AddressDetails?: AddressDetails;
+	};
+}
+
+export interface OtherEntity {
+	NonIndividualName?: NonIndividualName;
+}
+
+export interface NonIndividualName {
+	NonIndividualNameText?: string;
+	type?: string;
+	$?: { type?: string };
+	_?: string;
+}
+
+export interface GSTInfo {
+	status?: string;
+	$?: {
+		status?: string;
+		GSTStatusFromDate?: string;
+	};
+	GSTStatusFromDate?: string;
+}
+
+export interface AddressDetails {
+	State?: string;
+	Postcode?: string;
+}
