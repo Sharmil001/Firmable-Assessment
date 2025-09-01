@@ -62,8 +62,12 @@ const CompanyLists = () => {
 	});
 
 	const handleSearch = useCallback((filters: SearchFormData) => {
-		setSearchFilters(filters);
-		setPage(1);
+		setSearchFilters((prevFilters) => {
+			if (JSON.stringify(prevFilters) !== JSON.stringify(filters)) {
+				setPage(1);
+			}
+			return filters;
+		});
 	}, []);
 
 	const handleSortingChange = (newSorting: {
