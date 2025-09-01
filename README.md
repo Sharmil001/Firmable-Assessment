@@ -10,22 +10,29 @@ and modern UI/UX design.
 
 ```mermaid
 graph TB
-    %% Data Flow from Source to UI
     A[XML Data Source<br/>data.gov.au] --> B[Data Processing Pipeline]
+    B --> C[XML Parser<br/>Chunked Processing]
+    C --> D[Data Normalization<br/>& Validation]
+    D --> E[Supabase Database<br/>PostgreSQL]
+    
+    E --> F[Next.js API Routes<br/>Backend Logic]
+    F --> G[React Frontend<br/>Advanced Search UI]
+    G --> H[User Interface<br/>Business Directory]
     
     subgraph "Data Processing Layer"
-        B --> C[XML Parser<br/>Chunked Processing]
-        C --> D[Data Normalization & Validation]
-    end
-    
-    subgraph "Database Layer"
-        D --> E[Supabase Database<br/>PostgreSQL]
+        B
+        C
+        D
     end
     
     subgraph "Application Layer"
-        E --> F[Next.js API Routes<br/>Backend Logic]
-        F --> G[Next.js Frontend<br/>Advanced Search UI]
-        G --> H[User Interface<br/>Business Directory]
+        F
+        G
+        H
+    end
+    
+    subgraph "Database Layer"
+        E
     end
 ```
 
