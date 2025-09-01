@@ -15,14 +15,14 @@ export interface SearchResponse {
 	items_per_page: number;
 }
 
-interface EntityType {
+export interface EntityType {
 	code: string;
 	name: string;
 	count: number;
 	description: string;
 }
 
-interface CategoryData {
+export interface CategoryData {
 	name: string;
 	icon: React.ElementType;
 	color: string;
@@ -30,21 +30,21 @@ interface CategoryData {
 	entities: EntityType[];
 }
 
-interface Categories {
+export interface Categories {
 	major: CategoryData;
 	investment: CategoryData;
 	public: CategoryData;
 	specialized: CategoryData;
 }
 
-interface MarketAnalysis {
+export interface MarketAnalysis {
 	privateCompanies: number;
 	trusts: number;
 	partnerships: number;
 	publicCompanies: number;
 }
 
-interface CategoryCardProps {
+export interface CategoryCardProps {
 	category: string;
 	data: CategoryData;
 	totalEntities: number;
@@ -52,18 +52,18 @@ interface CategoryCardProps {
 	isExpanded: boolean;
 }
 
-interface TopEntityCardProps {
+export interface TopEntityCardProps {
 	code: string;
 	count: number;
 	index: number;
 	totalEntities: number;
 }
 
-interface LoadingStateProps {
+export interface LoadingStateProps {
 	message?: string;
 }
 
-interface ErrorStateProps {
+export interface ErrorStateProps {
 	error: string;
 	onRetry?: () => void;
 }
