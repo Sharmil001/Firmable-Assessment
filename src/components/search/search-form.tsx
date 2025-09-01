@@ -4,8 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Building2, MapPin, FileCheck, Filter, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+	Search,
+	Building2,
+	MapPin,
+	FileCheck,
+	Filter,
+	X,
+	Hash,
+	Info,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { states, gstStatuses } from "@/lib/constants";
 import { ComplexSelector } from "../common/complex-selector";
 
@@ -18,6 +27,8 @@ const searchSchema = z.object({
 	gstStatus: z.array(z.string()).optional(),
 	registrationFrom: z.date().optional(),
 	registrationTo: z.date().optional(),
+	abn: z.string().optional(),
+	postcode: z.string().optional(),
 });
 
 export type SearchFormData = z.infer<typeof searchSchema>;
@@ -57,6 +68,8 @@ export function SearchForm({
 	const selectedStates = watch("state") || [];
 	const selectedGstStatuses = watch("gstStatus") || [];
 	const query = watch("query") || "";
+	const abn = watch("abn") || "";
+	const postcode = watch("postcode") || "";
 
 	useEffect(() => {
 		if (searchFilters) {
@@ -67,6 +80,8 @@ export function SearchForm({
 				gstStatus: searchFilters.gstStatus || [],
 				registrationFrom: searchFilters.registrationFrom,
 				registrationTo: searchFilters.registrationTo,
+				abn: searchFilters.abn || "",
+				postcode: searchFilters.postcode || "",
 			});
 		}
 	}, [searchFilters, reset]);
@@ -77,10 +92,43 @@ export function SearchForm({
 			selectedEntityTypes.length > 0,
 			selectedStates.length > 0,
 			selectedGstStatuses.length > 0,
+			abn.length > 0,
+			postcode.length > 0,
 		].filter(Boolean).length;
 
 		setActiveFiltersCount(count);
-	}, [query, selectedEntityTypes, selectedStates, selectedGstStatuses]);
+	}, [
+		query,
+		selectedEntityTypes,
+		selectedStates,
+		selectedGstStatuses,
+		watch("abn"),
+		watch("postcode"),
+	]);
+
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			const filters = {
+				query,
+				abn,
+				postcode,
+				entityType: selectedEntityTypes,
+				state: selectedStates,
+				gstStatus: selectedGstStatuses,
+			};
+			onSearch(filters);
+		}, 1000);
+
+		return () => clearTimeout(handler);
+	}, [
+		query,
+		abn,
+		postcode,
+		selectedEntityTypes,
+		selectedStates,
+		selectedGstStatuses,
+		onSearch,
+	]);
 
 	const toggleCheckbox = (
 		field: "state" | "gstStatus",
@@ -89,7 +137,7 @@ export function SearchForm({
 		const current = watch(field) || [];
 		const newValue = current.includes(value)
 			? current.filter((v) => v !== value)
-			: [...current, value];
+			: [value];
 		setValue(field, newValue);
 	};
 
@@ -99,6 +147,8 @@ export function SearchForm({
 			entityType: [],
 			state: [],
 			gstStatus: [],
+			abn: "",
+			postcode: "",
 		};
 		reset(cleaned);
 		setIsEntityTypeDropdownOpen(false);
@@ -161,33 +211,92 @@ export function SearchForm({
 				)}
 			</div>
 
-			<div className="p-6 space-y-6">
-				<div className="space-y-2">
-					<label
-						htmlFor="search-query"
-						className="flex items-center gap-2 text-sm font-semibold text-gray-700"
-					>
-						<Search className="h-4 w-4 text-gray-500" />
-						Search Companies
-					</label>
-					<div className="relative">
-						<Input
-							{...register("query")}
-							id="search-query"
-							placeholder="Search by company name..."
-							className="pl-10 py-6 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-							aria-describedby={errors.query ? "query-error" : undefined}
-						/>
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+			<div className="p-6 space-y-4">
+				<div className="space-y-2 border-b border-gray-100 pb-4">
+					<div className="space-y-2">
+						<label
+							htmlFor="search-query"
+							className="flex items-center gap-2 text-sm font-semibold text-gray-700"
+						>
+							<Search className="h-4 w-4 text-gray-500" />
+							Companies Name
+							<span className="relative group">
+								<Info className="h-3 w-3 text-gray-500 ml-1" />
+								<p className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-700 text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+									Enter the exact company name for accurate results
+								</p>
+							</span>
+						</label>
+						<div className="relative">
+							<Input
+								{...register("query")}
+								id="search-query"
+								placeholder="Search by company name..."
+								className="pl-10 py-5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+								aria-describedby={errors.query ? "query-error" : undefined}
+							/>
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+						</div>
+						{errors.query && (
+							<p id="query-error" className="text-xs text-red-600">
+								{errors.query.message}
+							</p>
+						)}
 					</div>
-					{errors.query && (
-						<p id="query-error" className="text-xs text-red-600">
-							{errors.query.message}
-						</p>
-					)}
+
+					<div className="space-y-2">
+						<label
+							htmlFor="search-abn"
+							className="flex items-center gap-2 text-sm font-semibold text-gray-700"
+						>
+							<Hash className="h-4 w-4 text-gray-500" />
+							ABN
+							<span className="relative group">
+								<Info className="h-3 w-3 text-gray-500 ml-1" />
+								<p className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-700 text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+									Enter the full ABN number for accurate results
+								</p>
+							</span>
+						</label>
+
+						<div className="relative">
+							<Input
+								{...register("abn")}
+								id="search-abn"
+								placeholder="Search by ABN..."
+								className="pl-10 py-5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all w-full"
+							/>
+							<Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<label
+							htmlFor="search-postcode"
+							className="flex items-center gap-2 text-sm font-semibold text-gray-700"
+						>
+							<MapPin className="h-4 w-4 text-gray-500" />
+							Postcode
+							<span className="relative group">
+								<Info className="h-3 w-3 text-gray-500 ml-1" />
+								<p className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-700 text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+									Enter the full postcode for accurate results
+								</p>
+							</span>
+						</label>
+						<div className="relative">
+							<Input
+								{...register("postcode")}
+								id="search-postcode"
+								placeholder="Search by postcode..."
+								className="pl-10 py-5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all w-full"
+							/>
+							<MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+						</div>
+					</div>
 				</div>
 
-				<div className="space-y-2">
+				<div className="space-y-2 border-b border-gray-100 pb-4">
 					<label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
 						<Building2 className="h-4 w-4 text-gray-500" />
 						Entity Type
@@ -278,27 +387,27 @@ export function SearchForm({
 					</div>
 				</div>
 
-				<div className="pt-4 border-t border-gray-100">
-					<button
-						onClick={handleSubmit(onSubmit)}
-						disabled={isLoading}
-						className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-						aria-label={
-							isLoading
-								? "Searching companies..."
-								: "Search companies with current filters"
-						}
-					>
-						{isLoading ? (
-							<span className="flex items-center justify-center gap-2">
-								<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-								Searching...
-							</span>
-						) : (
-							"Search Companies"
-						)}
-					</button>
-				</div>
+				{/* <div className="pt-4 border-t border-gray-100"> */}
+				{/* 	<button */}
+				{/* 		onClick={handleSubmit(onSubmit)} */}
+				{/* 		disabled={isLoading} */}
+				{/* 		className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" */}
+				{/* 		aria-label={ */}
+				{/* 			isLoading */}
+				{/* 				? "Searching companies..." */}
+				{/* 				: "Search companies with current filters" */}
+				{/* 		} */}
+				{/* 	> */}
+				{/* 		{isLoading ? ( */}
+				{/* 			<span className="flex items-center justify-center gap-2"> */}
+				{/* 				<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> */}
+				{/* 				Searching... */}
+				{/* 			</span> */}
+				{/* 		) : ( */}
+				{/* 			"Search Companies" */}
+				{/* 		)} */}
+				{/* 	</button> */}
+				{/* </div> */}
 			</div>
 		</div>
 	);

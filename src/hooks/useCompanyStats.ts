@@ -3,8 +3,11 @@ import { useState, useEffect } from "react";
 interface CompanyStats {
 	activeAbns: number;
 	cancelledAbns: number;
-	publicCompanies: number;
-	privateCompanies: number;
+	gstActiveRate: number;
+	gstInactiveRate: number;
+	entityTypes: { [key: string]: number };
+	// publicCompanies: number;
+	// privateCompanies: number;
 	totalCompanies: number;
 	isLoading: boolean;
 	error: string | null;
@@ -14,8 +17,11 @@ export const useCompanyStats = () => {
 	const [stats, setStats] = useState<CompanyStats>({
 		activeAbns: 0,
 		cancelledAbns: 0,
-		publicCompanies: 0,
-		privateCompanies: 0,
+		gstActiveRate: 0,
+		gstInactiveRate: 0,
+		entityTypes: {},
+		// publicCompanies: 0,
+		// privateCompanies: 0,
 		totalCompanies: 0,
 		isLoading: true,
 		error: null,
@@ -37,8 +43,11 @@ export const useCompanyStats = () => {
 				setStats({
 					activeAbns: data.active_abns || 0,
 					cancelledAbns: data.cancelled_abns || 0,
-					publicCompanies: data.public_companies || 0,
-					privateCompanies: data.private_companies || 0,
+					gstActiveRate: data.gst_active || 0,
+					gstInactiveRate: data.gst_inactive || 0,
+					entityTypes: data.entity_types || [],
+					// publicCompanies: data.public_companies || 0,
+					// privateCompanies: data.private_companies || 0,
 					totalCompanies: data.total_companies || 0,
 					isLoading: false,
 					error: null,

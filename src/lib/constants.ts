@@ -132,3 +132,17 @@ export const sortOptions = [
 ];
 
 export const ignoreWords = ["PTY", "LTD", "INC", "LLC", "CO", "CORP", "THE"];
+export const GRADIENT_COLORS = [
+	"from-blue-500 to-indigo-600",
+	"from-emerald-500 to-teal-600",
+	"from-purple-500 to-pink-600",
+	"from-orange-500 to-red-600",
+	"from-cyan-500 to-blue-600",
+] as const;
+
+export const ANIMATION_DURATION = {
+	fast: "duration-200",
+	medium: "duration-300",
+	slow: "duration-500",
+	extra_slow: "duration-1000",
+} as const;

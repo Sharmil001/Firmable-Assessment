@@ -73,7 +73,7 @@ const DataTable = ({
 													</span>
 												</h3>
 												<div
-													className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+													className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold flex-shrink-0 w-fit ${
 														business.abn_status === "A"
 															? "bg-green-50 text-green-700 border border-green-200"
 															: "bg-red-50 text-red-700 border border-red-200"

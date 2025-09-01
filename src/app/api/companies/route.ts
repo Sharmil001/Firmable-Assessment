@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
 	const entityType = searchParams.get("entityType") || "";
 	const gstStatus = searchParams.get("gstStatus") || "";
 	const state = searchParams.get("state") || "";
+	const abn = searchParams.get("abn") || "";
+	const postcode = searchParams.get("postcode") || "";
 
 	let query = supabase
 		.from("companies")
@@ -26,14 +28,18 @@ export async function GET(req: NextRequest) {
 		.limit(perPage);
 
 	if (queryText.trim()) {
-		let searchField = "entity_name";
-		if (/^\d+$/.test(queryText.trim())) {
-			searchField = "abn";
-		}
-		query = query.textSearch(searchField, queryText, {
+		query = query.textSearch("entity_name", queryText, {
 			config: "english",
 			type: "plain",
 		});
+	}
+
+	if (abn.trim()) {
+		query = query.eq("abn", abn);
+	}
+
+	if (postcode.trim()) {
+		query = query.eq("address->>postcode", postcode);
 	}
 
 	if (entityType.trim()) {

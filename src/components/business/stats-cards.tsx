@@ -1,9 +1,10 @@
 import {
 	CheckCircle,
-	XCircle,
-	Building2,
 	Activity,
 	AlertCircle,
+	Target,
+	Shield,
+	Clock,
 } from "lucide-react";
 import { useCompanyStats } from "@/hooks/useCompanyStats";
 import React from "react";
@@ -12,8 +13,9 @@ const StatsCards = () => {
 	const {
 		activeAbns,
 		cancelledAbns,
-		publicCompanies,
-		privateCompanies,
+		gstActiveRate,
+		gstInactiveRate,
+		// entityTypes,
 		totalCompanies,
 		isLoading,
 		error,
@@ -21,7 +23,7 @@ const StatsCards = () => {
 
 	const stats = [
 		{
-			title: "Active ABNs",
+			title: "BUSINESS HEALTH",
 			value: activeAbns,
 			icon: CheckCircle,
 			gradient: "from-emerald-500 to-teal-600",
@@ -29,39 +31,43 @@ const StatsCards = () => {
 			textColor: "text-emerald-700",
 			iconBg: "bg-emerald-100",
 			percentage: totalCompanies > 0 ? (activeAbns / totalCompanies) * 100 : 0,
+			subTitle: "Active ABNs",
 		},
 		{
-			title: "Cancelled ABNs",
+			title: "DORMANT COMPANIES",
 			value: cancelledAbns,
-			icon: XCircle,
+			icon: Clock,
 			gradient: "from-red-500 to-rose-600",
 			bgGradient: "from-red-50 to-rose-50",
 			textColor: "text-red-700",
 			iconBg: "bg-red-100",
 			percentage:
 				totalCompanies > 0 ? (cancelledAbns / totalCompanies) * 100 : 0,
+			subTitle: "Cancelled ABNs",
 		},
 		{
-			title: "Public Companies",
-			value: publicCompanies,
-			icon: Building2,
+			title: "TAX COMPLIANCE",
+			value: gstActiveRate,
+			icon: Shield,
 			gradient: "from-blue-500 to-cyan-600",
 			bgGradient: "from-blue-50 to-cyan-50",
 			textColor: "text-blue-700",
 			iconBg: "bg-blue-100",
 			percentage:
-				totalCompanies > 0 ? (publicCompanies / totalCompanies) * 100 : 0,
+				totalCompanies > 0 ? (gstActiveRate / totalCompanies) * 100 : 0,
+			subTitle: "GST Active",
 		},
 		{
-			title: "Private Companies",
-			value: privateCompanies,
-			icon: Building2,
+			title: "GROWTH OPPORTUNITY",
+			value: gstInactiveRate,
+			icon: Target,
 			gradient: "from-amber-500 to-orange-600",
 			bgGradient: "from-amber-50 to-orange-50",
 			textColor: "text-amber-700",
 			iconBg: "bg-amber-100",
 			percentage:
-				totalCompanies > 0 ? (privateCompanies / totalCompanies) * 100 : 0,
+				totalCompanies > 0 ? (gstInactiveRate / totalCompanies) * 100 : 0,
+			subTitle: "GST Inactive",
 		},
 	];
 
@@ -134,7 +140,7 @@ const StatsCards = () => {
 								<div className="mt-4">
 									<div className="flex items-center justify-between mb-2">
 										<span className="text-xs text-gray-500">
-											{stat.percentage.toFixed(1)}% of total
+											{stat.percentage.toFixed(1)}% {stat.subTitle}
 										</span>
 										<Activity className="h-3 w-3 text-gray-400" />
 									</div>

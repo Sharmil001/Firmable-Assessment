@@ -16,8 +16,10 @@ const CompanyLists = () => {
 	const [searchFilters, setSearchFilters] = useState<SearchFormData>({
 		query: "",
 		entityType: [],
-		state: [],
-		gstStatus: [],
+		state: "",
+		gstStatus: "",
+		abn: "",
+		postcode: "",
 	});
 	const [sorting, setSorting] = useState({
 		sortBy: "entity_name",
@@ -38,6 +40,8 @@ const CompanyLists = () => {
 			searchFilters.gstStatus && searchFilters.gstStatus.length > 0
 				? searchFilters.gstStatus[0]
 				: "",
+		abn: searchFilters.abn || "",
+		postcode: searchFilters.postcode || "",
 	};
 
 	const {
@@ -51,6 +55,8 @@ const CompanyLists = () => {
 		entityType: apiFilters.entityType,
 		state: apiFilters.state,
 		gstStatus: apiFilters.gstStatus,
+		abn: apiFilters.abn,
+		postcode: apiFilters.postcode,
 		sortBy: sorting.sortBy,
 		sortOrder: sorting.sortOrder as "asc" | "desc",
 	});

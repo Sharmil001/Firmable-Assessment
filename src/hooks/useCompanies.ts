@@ -5,6 +5,8 @@ interface UseCompaniesProps {
 	page?: number;
 	perPage?: number;
 	query?: string;
+	abn?: string;
+	postcode?: string;
 	entityType?: string;
 	gstStatus?: string;
 	state?: string;
@@ -16,6 +18,8 @@ export function useCompanies({
 	page = 1,
 	perPage = 10,
 	query = "",
+	abn = "",
+	postcode = "",
 	entityType = "",
 	gstStatus = "",
 	state = "",
@@ -33,6 +37,8 @@ export function useCompanies({
 			page: page.toString(),
 			perPage: perPage.toString(),
 			query,
+			abn,
+			postcode,
 			entityType,
 			gstStatus,
 			state,
@@ -51,7 +57,18 @@ export function useCompanies({
 				setError(err.message);
 				setIsLoading(false);
 			});
-	}, [page, perPage, query, entityType, gstStatus, state, sortBy, sortOrder]);
+	}, [
+		page,
+		perPage,
+		query,
+		entityType,
+		gstStatus,
+		state,
+		sortBy,
+		sortOrder,
+		abn,
+		postcode,
+	]);
 
 	return { data, total, isLoading, error };
 }

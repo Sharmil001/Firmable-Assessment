@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
 	try {
 		const { data, error } = await supabase
-			.from("company_stats")
+			.from("company_graphs")
 			.select("*")
 			.single();
 
