@@ -5,6 +5,7 @@ Built with Next.js, TypeScript, and Supabase, this application demonstrates ente
 and modern UI/UX design.
 
 **Live Demo**: [View Application](https://firmable-assessment.vercel.app/)
+
 **Data Source** [View Source](https://data.gov.au/data/dataset/abn-bulk-extract)
 
 ## 🏗️ System Architecture
