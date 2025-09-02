@@ -167,14 +167,6 @@ CREATE INDEX idx_entity_name_tsv ON public.companies USING gin (to_tsvector('eng
 CREATE INDEX idx_abn_tsv ON public.companies USING gin (to_tsvector('english'::regconfig, abn))
 ```
 
-## 📈 Performance Metrics
-
-Based on testing with real ABN data:
-
-- **Processing Speed**: ~5,000 records per second
-- **Memory Usage**: Constant ~50MB regardless of file size
-- **Upload Speed**: ~1,000 records per second to Supabase
-- **File Size**: Successfully tested with files up to 2GB
 
 ## 🔒 Security
 
