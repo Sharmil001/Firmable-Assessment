@@ -441,8 +441,8 @@ const EntityTypesDashboard: React.FC = () => {
 
 	return (
 		<div className="space-y-12 container mx-auto p-6 max-w-7xl">
-			<div className="text-center mb-12">
-				<h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent mb-2">
+			<div className="text-center mb-6">
+				<h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent mb-2">
 					Australian Business Entity Intelligence
 				</h1>
 				<p className="text-base text-gray-600 max-w-xl mx-auto">
