@@ -1,4 +1,4 @@
-# Firmable Assessment - ABN Business Directory
+# ABN Business Explorer
 
 A comprehensive full-stack application for processing, managing, and searching Australian Business Number (ABN) data. 
 Built with Next.js, TypeScript, and Supabase, this application demonstrates enterprise-level data processing with advanced search capabilities 
