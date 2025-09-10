@@ -93,8 +93,8 @@ graph TB
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/Sharmil001/Firmable-Assessment.git
-cd firmable-assessment
+git clone https://github.com/Sharmil001/ABN-Business-explorer.git
+cd ABN-Business-explorer
 bun install
 ```
 
@@ -131,7 +131,7 @@ Visit `http://localhost:3000` to see the application.
 ## 🏗️ Project Structure
 
 ```
-firmable-assessment/
+ABN-Business-explorer/
 ├── app/                          # Next.js App Router
 │   ├── api/                      # API routes
 │   │   ├── companies/            # Company search endpoints
